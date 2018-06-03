@@ -62,7 +62,7 @@ b) You own the Copyright and patent claims covering the Contribution which are r
 
 c) The grant of rights under Section 2 does not violate any grant of rights which You have made to third parties, including Your employer. If You are an employee, You have had Your employer approve this Agreement or sign the Entity version of this document. If You are less than eighteen years old, please have Your parents or guardian sign the Agreement.
 
-d) You have followed the instructions in https://www.clahub.com/agreements/emdgroup/awscli-s3touch, if You do not own the Copyright in the entire work of authorship Submitted.
+d) You have followed the instructions in https://www.clahub.com/agreements/emdgroup/genesis-dev-server, if You do not own the Copyright in the entire work of authorship Submitted.
 
 ## 4. Disclaimer
 
