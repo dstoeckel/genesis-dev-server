@@ -74,7 +74,7 @@ module.exports = args => {
       body: req.body instanceof Buffer ? req.body.toString() : null,
       isBase64Encoded: false,
     });
-    let task = path.resolve(__dirname, '..', 'lambda'),
+    let task = path.resolve(process.cwd(), '..', 'lambda', 'main'),
       envs = [].concat.apply([], ENV_VARS.map(function (x) { return ['-e', x] }));
 
     execFile('docker',
