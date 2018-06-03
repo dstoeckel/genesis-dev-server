@@ -1,0 +1,32 @@
+{
+  "name": "genesis-dev-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "genesis-dev-server": "bin/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emdgroup/genesis-dev-server.git"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/emdgroup/genesis-dev-server/issues"
+  },
+  "homepage": "https://github.com/emdgroup/genesis-dev-server#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.16.3",
+    "yargs": "^11.0.0"
+  },
+  "peerDependencies": {
+    "webpack": "^4.10.2",
+    "webpack-dev-middleware": "^3.1.3"
+  }
+}
