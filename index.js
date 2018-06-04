@@ -72,7 +72,7 @@ module.exports = args => {
       // TODO: isBase64Encoded
       // TODO: headers
       res.send(out.body);
-    }, err => {
+    }).catch(err => {
       console.error(err.toString());
       res.status(502);
       res.json({ message: 'Bad Gateway' });
