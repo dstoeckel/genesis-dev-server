@@ -66,7 +66,17 @@ module.exports = args => {
       path: task,
       runtime: 'nodejs8.10',
     });
-    lambda.invoke(event, res);
+    lambda.invoke(event).then(out => {
+      assert.equal(typeof out.statusCode, 'number', 'statusCode must be a number.');
+      res.status(out.statusCode);
+      // TODO: isBase64Encoded
+      // TODO: headers
+      res.send(out.body);
+    }, err => {
+      console.error(err.toString());
+      res.status(502);
+      res.json({ message: 'Bad Gateway' });
+    });
   });
   app.post('/oauth2/user', (req, res) => {
     res.json({ "at_hash": "U1zvHrfQFBOeBiHapVF23g", "sub": "824ebb6f-dd89-4062-9156-8743043733fd", "cognito:groups": ["us-east-2_ytLIDC5V6_Merck"], "email_verified": false, "iss": "https://cognito-idp.us-east-2.amazonaws.com/us-east-2_ytLIDC5V6", "cognito:username": "Merck_M252249", "preferred_username": "M252249@eu.merckgroup.com", "given_name": "Moritz", "aud": "6ofje021s1673b12mtid3qsubo", "identities": [{ "userId": "M252249", "providerName": "Merck", "providerType": "SAML", "issuer": "https://sts.windows.net/db76fb59-a377-4120-bc54-59dead7d39c9/", "primary": "true", "dateCreated": "1506095170719" }], "token_use": "id", "auth_time": 1527689699, "exp": 1527693299, "iat": 1527689699, "family_name": "Onken", "email": "moritz.onken@merckgroup.com" });
