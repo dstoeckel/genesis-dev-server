@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-const app = require('../index'),
+const path = require('path'),
+  app = require('../index'),
   args = require('yargs').env('GENESIS').options({
     verbose: {
       alias: 'v',
@@ -20,6 +21,11 @@ const app = require('../index'),
       default: false,
       description: 'run webpack dev server',
     },
+    'lambda-base-directory': {
+      alias: 'l',
+      default: path.resolve(process.cwd(), 'lambda'),
+      description: 'location of base directory that contains lambda functions',
+    }
   }).argv;
 
 
