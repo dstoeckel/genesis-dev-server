@@ -2,6 +2,7 @@
 
 const path = require('path'),
   app = require('../index'),
+  config = require('../lib/config'),
   args = require('yargs').env('GENESIS').options({
     verbose: {
       alias: 'v',
@@ -28,6 +29,8 @@ const path = require('path'),
     }
   }).argv;
 
-
-let server = app(args);
-server.listen(8080, () => console.log('Project is running at http://localhost:8080/'))
+config.load(path.resolve(args.lambdaBaseDirectory, 'api.openapi.yml')).then(res => {
+  console.log(res);
+  let server = app(args, res);
+  server.listen(8080, () => console.log('Project is running at http://localhost:8080/'))
+});

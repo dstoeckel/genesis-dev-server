@@ -6,11 +6,10 @@ const crypto = require('crypto'),
   url = require('url'),
   fs = require('fs'),
   assert = require('assert'),
-  yaml = require('js-yaml'),
   utils = require('./utils'),
   Lambda = require('./lib/lambda');
 
-module.exports = args => {
+module.exports = (args, config) => {
 
   const app = express();
 
@@ -34,7 +33,7 @@ module.exports = args => {
   app.use(bodyParser.raw({ type: '*/*', limit: '10mb' }));
 
   app.use((req, res, next) => {
-    //if(req.cookies['xsrf-token'])
+    // TODO: validate and/or set xsrf-token
     next();
   });
 
@@ -61,11 +60,8 @@ module.exports = args => {
       isBase64Encoded: false,
     };
     let task = path.resolve(args.lambdaBaseDirectory, 'main');
-    let lambda = new Lambda({
-      name: 'main',
-      path: task,
-      runtime: 'nodejs8.10',
-    });
+    let lambda = config.lambda['main'];
+    lambda.path = task;
     lambda.invoke(event).then(out => {
       assert.equal(typeof out.statusCode, 'number', 'statusCode must be a number.');
       res.status(out.statusCode);

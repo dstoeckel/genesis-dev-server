@@ -20,7 +20,7 @@ describe('Lambda', () => {
         runtime: 'nodejs8.10',
         dockerPath: path.resolve('test/bin/docker.js'),
       });
-      lambda.invoke({ test: 'event' }).then(res => {
+      return lambda.invoke({ test: 'event' }).then(res => {
         assert.equal(res.statusCode, 200, 'status code is 200');
       });
     });

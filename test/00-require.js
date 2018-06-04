@@ -1,7 +1,7 @@
 const assert = require('assert'),
   path = require('path');
 
-const files = ['lib/lambda', 'utils', 'index'].map(f => path.resolve(f));
+const files = ['lib/config', 'lib/lambda', 'utils', 'index'].map(f => path.resolve(f));
 
 describe('require', () => {
   files.map(file => {

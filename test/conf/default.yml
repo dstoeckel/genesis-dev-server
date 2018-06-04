@@ -1,0 +1,15 @@
+swagger: '2.0'
+info:
+  title: app
+
+x-genesis:
+  lambda:
+    main:
+      handler: index.handler
+      runtime: nodejs8.10
+      memory: 512
+
+paths:
+  /{proxy+}:
+    get:
+      x-lambda: main
