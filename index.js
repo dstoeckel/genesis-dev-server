@@ -2,27 +2,13 @@ const crypto = require('crypto'),
   cookieParser = require('cookie-parser'),
   express = require('express'),
   bodyParser = require('body-parser'),
-  execFile = require('child_process').execFile,
   path = require('path'),
   url = require('url'),
   fs = require('fs'),
-  assert = require('assert');
-
-const ENV_VARS = [
-  'AWS_REGION',
-  'AWS_DEFAULT_REGION',
-  'AWS_ACCOUNT_ID',
-  'AWS_ACCESS_KEY_ID',
-  'AWS_SECRET_ACCESS_KEY',
-  'AWS_SESSION_TOKEN',
-  'AWS_LAMBDA_FUNCTION_NAME',
-  'AWS_LAMBDA_FUNCTION_VERSION',
-  'AWS_LAMBDA_FUNCTION_MEMORY_SIZE',
-  'AWS_LAMBDA_FUNCTION_TIMEOUT',
-  'AWS_LAMBDA_FUNCTION_HANDLER',
-  'AWS_LAMBDA_EVENT_BODY',
-  'DOCKER_LAMBDA_USE_STDIN',
-]
+  assert = require('assert'),
+  yaml = require('js-yaml'),
+  utils = require('./utils'),
+  Lambda = require('./lib/lambda');
 
 module.exports = args => {
 
@@ -54,7 +40,7 @@ module.exports = args => {
 
   app.all('/api/*', (req, res) => {
     let parsedUrl = url.parse(req.url, true);
-    let event = JSON.stringify({
+    let event = {
       resource: '/api/{proxy+}',
       path: req.path,
       httpMethod: req.method,
@@ -73,29 +59,14 @@ module.exports = args => {
       },
       body: req.body instanceof Buffer ? req.body.toString() : null,
       isBase64Encoded: false,
+    };
+    let task = path.resolve(args.lambdaBaseDirectory, 'main');
+    let lambda = new Lambda({
+      name: 'main',
+      path: task,
+      runtime: 'nodejs8.10',
     });
-    let task = path.resolve(args.lambdaBaseDirectory, 'main'),
-      envs = [].concat.apply([], ENV_VARS.map(function (x) { return ['-e', x] }));
-
-    execFile('docker',
-      ['run', '--rm', '-v', `${task}:/var/task`]
-        .concat(envs)
-        .concat(['lambci/lambda:nodejs8.10', 'index.handler', event]), {}, (err, stdout, stderr) => {
-          console.log(stderr);
-          try {
-            let out = JSON.parse(stdout);
-            assert.equal(typeof out.statusCode, 'number', 'statusCode must be a number.');
-            res.status(out.statusCode);
-            // TODO: isBase64Encoded
-            // TODO: headers
-            res.send(out.body);
-          } catch (e) {
-            console.error(e.toString());
-            res.status(502);
-            res.json({ message: 'Bad Gateway' });
-          }
-        });
-    //res.json({ api: true });
+    lambda.invoke(event, res);
   });
   app.post('/oauth2/user', (req, res) => {
     res.json({ "at_hash": "U1zvHrfQFBOeBiHapVF23g", "sub": "824ebb6f-dd89-4062-9156-8743043733fd", "cognito:groups": ["us-east-2_ytLIDC5V6_Merck"], "email_verified": false, "iss": "https://cognito-idp.us-east-2.amazonaws.com/us-east-2_ytLIDC5V6", "cognito:username": "Merck_M252249", "preferred_username": "M252249@eu.merckgroup.com", "given_name": "Moritz", "aud": "6ofje021s1673b12mtid3qsubo", "identities": [{ "userId": "M252249", "providerName": "Merck", "providerType": "SAML", "issuer": "https://sts.windows.net/db76fb59-a377-4120-bc54-59dead7d39c9/", "primary": "true", "dateCreated": "1506095170719" }], "token_use": "id", "auth_time": 1527689699, "exp": 1527693299, "iat": 1527689699, "family_name": "Onken", "email": "moritz.onken@merckgroup.com" });
