@@ -16,7 +16,7 @@ module.exports = (args, config) => {
   if (fs.existsSync(args.webpackConfig)) {
     const webpack = require('webpack'),
       middleware = require('webpack-dev-middleware'),
-      compiler = webpack(require(path.resolve('webpack.config.js')));
+      compiler = webpack(require(path.resolve(args.webpackConfig)));
     app.use(middleware(compiler, {
       // webpack-dev-middleware options
     }));
