@@ -30,7 +30,6 @@ const path = require('path'),
   }).argv;
 
 config.load(path.resolve(args.lambdaBaseDirectory, 'api.openapi.yml')).then(res => {
-  console.log(res);
   let server = app(args, res);
   server.listen(8080, () => console.log('Project is running at http://localhost:8080/'))
 });
