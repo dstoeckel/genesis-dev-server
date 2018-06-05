@@ -13,7 +13,7 @@ module.exports = (args, config) => {
 
   const app = express();
 
-  if (fs.existsSync('webpack.config.js')) {
+  if (fs.existsSync(args.webpackConfig)) {
     const webpack = require('webpack'),
       middleware = require('webpack-dev-middleware'),
       compiler = webpack(require(path.resolve('webpack.config.js')));
