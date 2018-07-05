@@ -71,7 +71,7 @@ module.exports = (args, config) => {
     }).catch(err => {
       console.error(err.toString());
       res.status(502);
-      res.json({ message: 'Bad Gateway' });
+      res.json({ message: 'Internal server error' });
     });
   });
   app.post('/oauth2/user', (req, res) => {
