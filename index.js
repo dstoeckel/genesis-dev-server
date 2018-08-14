@@ -50,11 +50,14 @@ module.exports = (args, config) => {
       pathParameters: null,
       stageVariables: null,
       requestContext: {
+        authorizer: {
+          muid: 'm252249',
+          email: 'moritz.onken@merckgroup.com',
+          principalId: '824ebb6f-dd89-4062-9156-8743043733fd',
+        },
         requestTimeEpoch: new Date().getTime(),
         identity: {
-          caller: 'AROAIYDPCAQXTFCBHLO4U:m252249',
-          user: 'AROAIYDPCAQXTFCBHLO4U:m252249',
-          userArn: 'arn:aws:sts::368326717666:assumed-role/Developer/m252249',
+          userAgent: 'Amazon CloudFront',
           sourceIp: '127.0.0.1',
         },
       },
