@@ -12,6 +12,8 @@ const crypto = require('crypto'),
 module.exports = (args, config) => {
 
   const app = express();
+  app.use('/public', express.static('public'))
+
 
   if (fs.existsSync(args.webpackConfig)) {
     const webpack = require('webpack'),
