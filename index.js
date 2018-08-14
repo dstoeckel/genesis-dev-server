@@ -84,6 +84,10 @@ module.exports = (args, config) => {
   });
 
   app.post('/oauth2/refresh', (req, res) => {
+    res.json({ });
+  });
+
+  app.post('/oauth2/refresh', (req, res) => {
     let token = crypto.randomBytes(16).toString('hex');
     res.cookie('xsrf-token', token, { expires: new Date(Date.now() + 3600000) });
   });
