@@ -7,13 +7,16 @@ const crypto = require('crypto'),
   fs = require('fs'),
   assert = require('assert'),
   utils = require('./utils'),
-  Lambda = require('./lib/lambda');
+  Lambda = require('./lib/lambda'),
+  history = require('connect-history-api-fallback');
 
 module.exports = (args, config) => {
 
   const app = express();
-  app.use('/public', express.static('public'))
+  app.use('/public', express.static('public'));
 
+  // Fallback to index.html if no static file was served.
+  app.use(history());
 
   if (fs.existsSync(args.webpackConfig)) {
     const webpack = require('webpack'),
