@@ -8,12 +8,11 @@ const crypto = require('crypto'),
   assert = require('assert'),
   utils = require('./utils'),
   Lambda = require('./lib/lambda'),
-  history = require('connect-history-api-fallback');
+  WebpackDevServer = require('webpack-dev-server');
 
 module.exports = (args, config) => {
 
   const app = express();
-  app.use('/public', express.static('public'));
 
   app.use(cookieParser());
   app.use(bodyParser.raw({ type: '*/*', limit: '10mb' }));
@@ -73,16 +72,12 @@ module.exports = (args, config) => {
     res.cookie('xsrf-token', token, { expires: new Date(Date.now() + 3600000) });
   });
 
-  // Fallback to index.html if no static file was served.
-  app.use(history());
-
   if (fs.existsSync(args.webpackConfig)) {
     const webpack = require('webpack'),
-      middleware = require('webpack-dev-middleware'),
-      compiler = webpack(require(path.resolve(args.webpackConfig)));
-    app.use(middleware(compiler, {
-      // webpack-dev-middleware options
-    }));
+      config = require(path.resolve(args.webpackConfig)),
+      compiler = webpack(config),
+      server = new WebpackDevServer(compiler, config.devServer);
+    app.use(server.app);
   } else {
     app.get('/', (req, res) => {
       res.send(`
