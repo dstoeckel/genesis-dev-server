@@ -1,3 +1,7 @@
+// Do this as the first thing so that any code reading it knows the right env.
+process.env.BABEL_ENV = 'development';
+process.env.NODE_ENV = 'development';
+
 const crypto = require('crypto');
 const cookieParser = require('cookie-parser');
 const express = require('express');
@@ -6,10 +10,6 @@ const path = require('path');
 const url = require('url');
 const fs = require('fs');
 const assert = require('assert');
-const WebpackDevServer = require('webpack-dev-server');
-
-const utils = require('./utils');
-const Lambda = require('./lib/lambda');
 
 module.exports = (args, config) => {
   const app = express();
@@ -38,7 +38,7 @@ module.exports = (args, config) => {
           email: 'moritz.onken@merckgroup.com',
           principalId: '824ebb6f-dd89-4062-9156-8743043733fd',
         },
-        requestTimeEpoch: new Date().getTime(),
+        requestTimeEpoch: Date.now(),
         identity: {
           userAgent: 'Amazon CloudFront',
           sourceIp: '127.0.0.1',
@@ -101,23 +101,27 @@ module.exports = (args, config) => {
     res.cookie('xsrf-token', token, { expires: new Date(Date.now() + 3600000) });
   });
 
-  if (fs.existsSync(args.webpackConfig)) {
-    const webpack = require('webpack');
+  const { webserver = 'default' } = args;
+  let serverFactory;
 
-    const config = require(path.resolve(args.webpackConfig));
+  try {
+    const libLocation = path.join(__dirname, `lib/server/${webserver}.js`);
+    fs.statSync(libLocation);
 
-    const compiler = webpack(config);
-
-    const server = new WebpackDevServer(compiler, config.devServer);
-    app.use(server.app);
-  } else {
-    app.get('/', (req, res) => {
-      res.send(`
-      <h1>Genesis Dev Server</h1>
-      <p>Open the browser's developer tools to access the API Gateway or enable the webpack dev server (<code>--webpack</code>).</p>
-    `);
-    });
+    // eslint-disable-next-line global-require
+    serverFactory = require(libLocation);
+  } catch (e) {
+    if(e.code === 'ENOENT') {
+      console.error('Specified web server does not exist.');
+    } else if(e.code === 'MODULE_NOT_FOUND') {
+      console.error('Some web server dependencies could not be loaded:', e.message);
+    } else {
+      console.error(e.toString());
+    }
+    process.exit(1);
   }
-
-  return app;
+  return serverFactory(args).then((server) => {
+    server.app.use(app);
+    return server;
+  });
 };
