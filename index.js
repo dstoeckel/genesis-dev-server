@@ -120,8 +120,7 @@ module.exports = (args, config) => {
     }
     process.exit(1);
   }
-  return serverFactory(args).then((server) => {
-    server.app.use(app);
+  return serverFactory(app, args).then((server) => {
     return server;
   });
 };
