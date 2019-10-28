@@ -14,6 +14,8 @@ const assert = require('assert');
 module.exports = (args, config) => {
   const app = express();
 
+  app.disable('x-powered-by');
+
   app.use(cookieParser());
   app.use(bodyParser.raw({ type: '*/*', limit: '10mb' }));
 
@@ -54,9 +56,15 @@ module.exports = (args, config) => {
       .invoke(event)
       .then((out) => {
         assert.equal(typeof out.statusCode, 'number', 'statusCode must be a number.');
+        const headers = {
+          ...(out.headers || {}),
+          ...(out.multiValueHeaders || {}),
+        };
+        Object.keys(headers).forEach((k) => {
+          res.setHeader(k, headers[k]);
+        });
         res.status(out.statusCode);
         // TODO: isBase64Encoded
-        // TODO: headers
         res.send(out.body);
       })
       .catch((err) => {
