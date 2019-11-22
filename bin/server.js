@@ -35,7 +35,7 @@ const args = yargs.env('GENESIS').options({
 }).argv;
 
 config
-  .load(path.resolve(args.lambdaBaseDirectory, 'api.openapi.yml'))
+  .load(path.resolve(args.lambdaBaseDirectory))
   .then(res => app(args, res))
   .then((server) => {
     server.listen(args.port, args.host, () => console.log(`Project is running at http://${args.host}:${args.port}/`));
