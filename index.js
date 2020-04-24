@@ -11,8 +11,68 @@ const url = require('url');
 const fs = require('fs');
 const assert = require('assert');
 
+function makeEvent(req) {
+  const parsedUrl = url.parse(req.url, true);
+  return {
+    resource: '/api/{proxy+}',
+    path: req.path,
+    httpMethod: req.method,
+    headers: req.headers,
+    queryStringParameters: parsedUrl.search ? parsedUrl.query : null,
+    pathParameters: null,
+    stageVariables: null,
+    requestContext: {
+      authorizer: {
+        muid: 'm252249',
+        email: 'moritz.onken@merckgroup.com',
+        principalId: '824ebb6f-dd89-4062-9156-8743043733fd',
+      },
+      requestTimeEpoch: Date.now(),
+      identity: {
+        userAgent: 'Amazon CloudFront',
+        sourceIp: '127.0.0.1',
+      },
+    },
+    body: req.body instanceof Buffer ? req.body.toString() : null,
+    isBase64Encoded: false,
+  };
+}
+
+function invokeLambda(lambda, event, res) {
+  lambda
+    .invoke(event)
+    .then((out) => {
+      assert.equal(typeof out.statusCode, 'number', 'statusCode must be a number.');
+      const headers = {
+        ...(out.headers || {}),
+        ...(out.multiValueHeaders || {}),
+      };
+      Object.keys(headers).forEach((k) => {
+        res.setHeader(k, headers[k]);
+      });
+      res.status(out.statusCode);
+      // TODO: isBase64Encoded
+      res.send(out.body);
+    })
+    .catch((err) => {
+      console.error(err.toString());
+      res.status(502);
+      res.json({ message: 'Internal server error' });
+    });
+}
+
+// Resolve the location of all configured lambdas once on startup
+function setupLambdas(base, lambda) {
+  for(const l in lambda) {
+    if(lambda.hasOwnProperty(l)) {
+      lambda[l].path = path.resolve(base, lambda[l].path || l);
+    }
+  }
+}
+
 module.exports = (args, config) => {
   const app = express();
+  setupLambdas(args.lambdaBaseDirectory, config.lambda)
 
   app.disable('x-powered-by');
 
@@ -24,55 +84,26 @@ module.exports = (args, config) => {
     next();
   });
 
-  app.all('/api/*', (req, res) => {
-    const parsedUrl = url.parse(req.url, true);
-    const event = {
-      resource: '/api/{proxy+}',
-      path: req.path,
-      httpMethod: req.method,
-      headers: req.headers,
-      queryStringParameters: parsedUrl.search ? parsedUrl.query : null,
-      pathParameters: null,
-      stageVariables: null,
-      requestContext: {
-        authorizer: {
-          muid: 'm252249',
-          email: 'moritz.onken@merckgroup.com',
-          principalId: '824ebb6f-dd89-4062-9156-8743043733fd',
-        },
-        requestTimeEpoch: Date.now(),
-        identity: {
-          userAgent: 'Amazon CloudFront',
-          sourceIp: '127.0.0.1',
-        },
-      },
-      body: req.body instanceof Buffer ? req.body.toString() : null,
-      isBase64Encoded: false,
-    };
-    const task = path.resolve(args.lambdaBaseDirectory, 'main');
-    const lambda = config.lambda.main;
-    lambda.path = task;
-    lambda
-      .invoke(event)
-      .then((out) => {
-        assert.equal(typeof out.statusCode, 'number', 'statusCode must be a number.');
-        const headers = {
-          ...(out.headers || {}),
-          ...(out.multiValueHeaders || {}),
-        };
-        Object.keys(headers).forEach((k) => {
-          res.setHeader(k, headers[k]);
-        });
-        res.status(out.statusCode);
-        // TODO: isBase64Encoded
-        res.send(out.body);
-      })
-      .catch((err) => {
-        console.error(err.toString());
-        res.status(502);
-        res.json({ message: 'Internal server error' });
-      });
+  app.all('/api/:sub*', (req, res) => {
+    const event = makeEvent(req);
+    const sub = req.params.sub;
+
+    if(sub in config.lambda) {
+      invokeLambda(config.lambda[sub], event, res);
+    } else if('main' in config.lambda) {
+      invokeLambda(config.lambda.main, event, res)
+    } else {
+      res.status(404);
+      res.json({ message: 'Unknown endpoint' })
+    }
   });
+
+  if(config.lambda.main !== undefined) {
+    app.all('/api/?', (req, res) => {
+      const event = makeEvent(req);
+      invokeLambda(config.lambda.main, event, res)
+    });
+  }
 
   app.post('/oauth2/user', (req, res) => {
     res.json({
