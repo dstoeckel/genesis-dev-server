@@ -17,7 +17,7 @@ describe('Lambda', () => {
       let lambda = new Lambda({
         name: 'test',
         path: path.resolve('.'),
-        runtime: 'nodejs8.10',
+        runtime: 'nodejs12.x',
         dockerPath: path.resolve('test/bin/docker.js'),
       });
       return lambda.invoke({ test: 'event' }).then(res => {
